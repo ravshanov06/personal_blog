@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - Blog CMS</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --surface: #1e293b;
+            --primary: #3b82f6;
+            --text: #f1f5f9;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --error: #ef4444;
+            --success: #10b981;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 400px;
+            background: var(--surface);
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .logo h1 {
+            font-size: 2.2rem;
+            background: linear-gradient(135deg, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+
+        .logo p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--primary), #8b5cf6);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--error);
+            display: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .loading::after {
+            content: '...';
+            animation: dots 1.5s infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+
+        .api-status {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+
+        .status-up { background: var(--success); }
+        .status-down { background: var(--error); }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo">
+            <h1>🔐 Blog CMS</h1>
+            <p>Admin Dashboard</p>
+        </div>
+
+        <div id="error-message" class="error-message"></div>
+
+        <form id="login-form">
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input
+                    type="email"
+                    id="email"
+                    placeholder="admin@blog.com"
+                    required
+                    value="admin@blog.com"
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input
+                    type="password"
+                    id="password"
+                    placeholder="••••••••"
+                    required
+                    value="admin123"
+                >
+            </div>
+
+            <button type="submit" class="btn">Sign In</button>
+        </form>
+
+        <div id="loading" class="loading">Authenticating</div>
+
+        <div class="api-status">
+            <span>API Status:
+                <span class="status-indicator" id="api-status"></span>
+                <span id="api-status-text">Checking...</span>
+            </span>
+            <span id="api-url">http://localhost:3000</span>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+        const DASHBOARD_URL = 'dashboard.html';
+
+        // Check API health
+        async function checkAPIHealth() {
+            const statusEl = document.getElementById('api-status');
+            const statusText = document.getElementById('api-status-text');
+            const urlEl = document.getElementById('api-url');
+
+            urlEl.textContent = API_URL.replace('/api', '');
+
+            try {
+                const response = await fetch(`${API_URL}/health`);
+                if (response.ok) {
+                    statusEl.className = 'status-indicator status-up';
+                    statusText.textContent = 'Connected';
+                    return true;
+                }
+            } catch (error) {
+                // Silently fail - user will see error on login
+            }
+
+            statusEl.className = 'status-indicator status-down';
+            statusText.textContent = 'Disconnected';
+            return false;
+        }
+
+        // Handle login
+        async function handleLogin(event) {
+            event.preventDefault();
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const errorEl = document.getElementById('error-message');
+            const loadingEl = document.getElementById('loading');
+            const form = document.getElementById('login-form');
+
+            // Reset error
+            errorEl.style.display = 'none';
+            form.style.display = 'none';
+            loadingEl.style.display = 'block';
+
+            try {
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || data.data || 'Login failed');
+                }
+
+                if (!data.jwt) {
+                    throw new Error('No token received');
+                }
+
+                // Store token and user info
+                localStorage.setItem('blog_admin_token', data.jwt);
+                localStorage.setItem('blog_admin_user', JSON.stringify(data.user));
+
+                // Redirect to dashboard
+                window.location.href = DASHBOARD_URL;
+
+            } catch (error) {
+                // Show error
+                errorEl.textContent = error.message;
+                errorEl.style.display = 'block';
+
+                // Show form again
+                form.style.display = 'block';
+                loadingEl.style.display = 'none';
+
+                console.error('Login error:', error);
+            }
+        }
+
+        // Check if already logged in
+        function checkExistingLogin() {
+            const token = localStorage.getItem('blog_admin_token');
+            if (token) {
+                // Optional: Validate token before redirect
+                window.location.href = DASHBOARD_URL;
+            }
+        }
+
+        // Event Listeners
+        document.getElementById('login-form').addEventListener('submit', handleLogin);
+
+        // Initialize
+        checkExistingLogin();
+        checkAPIHealth();
+
+        // Auto-check API every 30 seconds
+        setInterval(checkAPIHealth, 30000);
+
+        // Debug info
+        console.log('%c🔐 Admin Panel Loaded', 'color: #3b82f6; font-size: 14px; font-weight: bold;');
+        console.log('API URL:', API_URL);
+    </script>
+</body>
+</html>

@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Blog</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            line-height: 1.6;
+            background: #0f172a;
+            color: #e2e8f0;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        header {
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #334155;
+        }
+        h1 {
+            font-size: 2.5rem;
+            color: #60a5fa;
+            background: linear-gradient(135deg, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+        .tagline { color: #94a3b8; font-size: 1.1rem; }
+        .posts { display: flex; flex-direction: column; gap: 30px; }
+        .post {
+            background: #1e293b;
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid #334155;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .post:hover {
+            transform: translateY(-2px);
+            border-color: #60a5fa;
+        }
+        .post h2 {
+            color: #f1f5f9;
+            margin-bottom: 15px;
+            font-size: 1.8rem;
+        }
+        .post-content {
+            color: #cbd5e1;
+            margin-bottom: 20px;
+            line-height: 1.7;
+        }
+        .meta {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #334155;
+        }
+        .meta span { display: flex; align-items: center; gap: 5px; }
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: #64748b;
+            font-size: 1.2rem;
+        }
+        .loading::after {
+            content: '...';
+            animation: dots 1.5s infinite;
+        }
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+        .error {
+            background: #7f1d1d;
+            color: #fecaca;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #ef4444;
+        }
+        .comments {
+            margin-top: 25px;
+            border-top: 1px solid #334155;
+            padding-top: 20px;
+        }
+        .comment {
+            background: #334155;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 3px solid #60a5fa;
+        }
+        .comment strong { color: #93c5fd; }
+        .comment p { color: #e2e8f0; margin: 8px 0; }
+        .comment small { color: #94a3b8; font-size: 0.85rem; }
+        .comment-form {
+            margin-top: 20px;
+            display: none;
+            background: #334155;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .comment-form input,
+        .comment-form textarea {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            background: #475569;
+            border: 1px solid #64748b;
+            border-radius: 6px;
+            color: #f1f5f9;
+            font-size: 1rem;
+        }
+        .comment-form input::placeholder,
+        .comment-form textarea::placeholder {
+            color: #94a3b8;
+        }
+        .comment-form button {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .comment-form button:hover {
+            opacity: 0.9;
+        }
+        .add-comment-btn {
+            background: transparent;
+            color: #60a5fa;
+            border: 1px solid #60a5fa;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            margin-top: 15px;
+            transition: all 0.2s;
+        }
+        .add-comment-btn:hover {
+            background: rgba(96, 165, 250, 0.1);
+        }
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #334155;
+            border: 1px solid #475569;
+            color: #e2e8f0;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        footer {
+            margin-top: 60px;
+            padding-top: 20px;
+            border-top: 1px solid #334155;
+            color: #94a3b8;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" onclick="toggleTheme()">🌙 Dark</button>
+
+    <header>
+        <h1>🚀 My Personal Blog</h1>
+        <p class="tagline">Thoughts, ideas, and stories from the dark side of the web.</p>
+    </header>
+
+    <main>
+        <div id="posts" class="posts">
+            <div class="loading">Loading cosmic posts</div>
+        </div>
+    </main>
+
+    <footer>
+        <p>Built with ☕ and 💻 • API powered by Express & Prisma</p>
+        <p>© 2026 My Blog • All thoughts are my own</p>
+    </footer>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+
+        async function fetchPosts() {
+            try {
+                const response = await fetch(`${API_URL}/posts`);
+                const result = await response.json();
+
+                const postsContainer = document.getElementById('posts');
+
+                if (!response.ok) {
+                    postsContainer.innerHTML = `<div class="error">🚨 Error: ${result.error || 'Failed to load posts'}</div>`;
+                    return;
+                }
+
+                if (!result.data || result.data.length === 0) {
+                    postsContainer.innerHTML = `
+                        <div class="post">
+                            <h2>🌌 The Void</h2>
+                            <p class="post-content">No posts yet. The cosmic dust hasn't settled...</p>
+                            <div class="meta">
+                                <span>⏳ Coming soon</span>
+                            </div>
+                        </div>`;
+                    return;
+                }
+
+                postsContainer.innerHTML = result.data.map(post => `
+                    <article class="post" data-post-id="${post.id}">
+                        <h2>${post.title}</h2>
+                        <p class="post-content">${post.content}</p>
+                        <div class="meta">
+                            <span>👨‍🚀 ${post.author?.username || 'Admin'}</span>
+                            <span>📅 ${new Date(post.createdAt).toLocaleDateString('en-US', {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric'
+                            })}</span>
+                            <span>🕒 ${new Date(post.createdAt).toLocaleTimeString([], {
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            })}</span>
+                        </div>
+                        <div class="comments" id="comments-${post.id}">
+                            <h3>💬 Comments (${post.comments?.length || 0})</h3>
+                            ${post.comments && post.comments.length > 0 ?
+                                post.comments.map(comment => `
+                                    <div class="comment">
+                                        <strong>${comment.author?.username || comment.guestName || '👻 Anonymous'}</strong>
+                                        <p>${comment.content}</p>
+                                        <small>${new Date(comment.createdAt).toLocaleDateString()}</small>
+                                    </div>
+                                `).join('') :
+                                '<p>Be the first to leave a comment! ✨</p>'
+                            }
+                        </div>
+                        <form class="comment-form" id="comment-form-${post.id}" onsubmit="submitComment(event, ${post.id})">
+                            <input type="text" name="name" placeholder="Your cosmic alias" required>
+                            <input type="email" name="email" placeholder="Email (optional for notifications)">
+                            <textarea name="content" placeholder="Share your thoughts with the universe..." required rows="3"></textarea>
+                            <button type="submit">🚀 Launch Comment</button>
+                        </form>
+                        <button class="add-comment-btn" onclick="toggleCommentForm(${post.id})">
+                            💬 Add to the conversation
+                        </button>
+                    </article>
+                `).join('');
+
+            } catch (error) {
+                document.getElementById('posts').innerHTML = `
+                    <div class="error">
+                        🌐 Network disruption: ${error.message}<br>
+                        Make sure the backend is running on port 3000
+                    </div>`;
+            }
+        }
+
+        function toggleCommentForm(postId) {
+            const form = document.getElementById(`comment-form-${postId}`);
+            form.style.display = form.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function toggleTheme() {
+            const btn = document.querySelector('.theme-toggle');
+            if (btn.textContent.includes('Dark')) {
+                document.body.style.backgroundColor = '#f8fafc';
+                document.body.style.color = '#1e293b';
+                btn.textContent = '☀️ Light';
+                // You'd need to update all colors - this is minimal toggle
+            } else {
+                document.body.style.backgroundColor = '#0f172a';
+                document.body.style.color = '#e2e8f0';
+                btn.textContent = '🌙 Dark';
+            }
+        }
+
+        async function submitComment(event, postId) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const commentData = {
+                content: formData.get('content'),
+                postId: postId,
+                guestName: formData.get('name'),
+                guestEmail: formData.get('email')
+            };
+
+            // TODO: Implement comment submission endpoint
+            alert('✨ Comment system under construction!\nEndpoint: POST /api/comments');
+            console.log('Comment payload:', commentData);
+
+            // Reset form
+            event.target.reset();
+            toggleCommentForm(postId);
+        }
+
+        // Initial load
+        fetchPosts();
+
+        // Auto-refresh every 30 seconds
+        setInterval(fetchPosts, 30000);
+
+        // Cool console message
+        console.log('%c🚀 Blog Frontend Loaded!', 'color: #60a5fa; font-size: 16px; font-weight: bold;');
+        console.log('%cBackend API:', 'color: #a78bfa;', API_URL);
+    </script>
+</body>
+</html>

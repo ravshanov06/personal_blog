@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Blog CMS</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --surface: #1e293b;
+            --surface-light: #334155;
+            --primary: #3b82f6;
+            --text: #f1f5f9;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --error: #ef4444;
+            --success: #10b981;
+            --warning: #f59e0b;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background: var(--surface);
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            border-right: 1px solid var(--border);
+            padding: 30px 20px;
+        }
+
+        .logo {
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo h1 {
+            font-size: 1.5rem;
+            background: linear-gradient(135deg, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .user-info {
+            margin-bottom: 30px;
+            padding: 15px;
+            background: var(--surface-light);
+            border-radius: 8px;
+        }
+
+        .user-info h3 {
+            font-size: 1rem;
+            margin-bottom: 5px;
+        }
+
+        .user-info p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .nav ul {
+            list-style: none;
+        }
+
+        .nav li {
+            margin-bottom: 8px;
+        }
+
+        .nav a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 15px;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .nav a:hover {
+            background: var(--surface-light);
+            color: var(--text);
+        }
+
+        .nav a.active {
+            background: linear-gradient(135deg, var(--primary), #8b5cf6);
+            color: white;
+        }
+
+        .logout-btn {
+            position: absolute;
+            bottom: 30px;
+            left: 20px;
+            right: 20px;
+            background: var(--surface-light);
+            color: var(--error);
+            border: 1px solid var(--border);
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .logout-btn:hover {
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 250px;
+            padding: 30px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Posts Table */
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .new-post-btn {
+            background: linear-gradient(135deg, var(--primary), #8b5cf6);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .posts-table {
+            width: 100%;
+            background: var(--surface);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 20px;
+            background: var(--surface-light);
+            color: var(--text-muted);
+            font-weight: 500;
+            font-size: 0.9rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .post-title {
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+
+        .post-meta {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .status-published {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .status-draft {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            background: var(--surface-light);
+        }
+
+        .edit-btn:hover {
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .delete-btn:hover {
+            color: var(--error);
+            border-color: var(--error);
+        }
+
+        .toggle-btn:hover {
+            color: var(--success);
+            border-color: var(--success);
+        }
+
+        /* Loading State */
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: var(--text-muted);
+        }
+
+        .loading::after {
+            content: '...';
+            animation: dots 1.5s infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+
+        /* Error State */
+        .error-state {
+            text-align: center;
+            padding: 60px;
+            color: var(--error);
+        }
+
+        .error-state button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: var(--surface-light);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="logo">
+            <h1>📊 Blog CMS</h1>
+        </div>
+
+        <div class="user-info">
+            <h3 id="user-name">Loading...</h3>
+            <p id="user-email">admin@blog.com</p>
+        </div>
+
+        <nav class="nav">
+            <ul>
+                <li><a href="#" class="active">📊 Dashboard</a></li>
+                <li><a href="editor.html">📝 New Post</a></li>
+                <li><a href="#">💬 Comments</a></li>
+                <li><a href="#">👥 Users</a></li>
+                <li><a href="#">⚙️ Settings</a></li>
+            </ul>
+        </nav>
+
+        <button class="logout-btn" onclick="logout()">
+            <span>🚪 Logout</span>
+        </button>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="header">
+            <h1>Dashboard Overview</h1>
+            <div class="last-updated" id="last-updated">Loading...</div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number" id="total-posts">0</div>
+                <div class="stat-label">Total Posts</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="published-posts">0</div>
+                <div class="stat-label">Published</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="draft-posts">0</div>
+                <div class="stat-label">Drafts</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="total-comments">0</div>
+                <div class="stat-label">Comments</div>
+            </div>
+        </div>
+
+        <!-- Recent Posts -->
+        <div class="section">
+            <div class="section-header">
+                <h2 class="section-title">Recent Posts</h2>
+                <button class="new-post-btn" onclick="window.location.href='editor.html'">
+                    <span>+</span> New Post
+                </button>
+            </div>
+
+            <div class="posts-table">
+                <div id="posts-table-content">
+                    <div class="loading">Loading posts...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+        let allPosts = [];
+
+        // Check authentication
+        function checkAuth() {
+            const token = localStorage.getItem('blog_admin_token');
+            if (!token) {
+                window.location.href = 'index.html';
+                return null;
+            }
+            return token;
+        }
+
+        // Set user info
+        function setUserInfo() {
+            const userStr = localStorage.getItem('blog_admin_user');
+            if (userStr) {
+                const user = JSON.parse(userStr);
+                document.getElementById('user-name').textContent = user.username || 'Admin';
+                document.getElementById('user-email').textContent = user.email;
+            }
+        }
+
+        // Fetch all posts
+        async function fetchPosts() {
+            const token = checkAuth();
+            if (!token) return;
+
+            try {
+                const response = await fetch(`${API_URL}/posts/all`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.status === 401) {
+                    logout();
+                    return;
+                }
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch posts');
+                }
+
+                const result = await response.json();
+                allPosts = result.data || [];
+                renderPostsTable();
+                updateStats();
+
+                // Update last updated time
+                document.getElementById('last-updated').textContent =
+                    `Last updated: ${new Date().toLocaleTimeString()}`;
+
+            } catch (error) {
+                document.getElementById('posts-table-content').innerHTML = `
+                    <div class="error-state">
+                        <p>Error loading posts: ${error.message}</p>
+                        <button onclick="fetchPosts()">Retry</button>
+                    </div>
+                `;
+                console.error('Fetch posts error:', error);
+            }
+        }
+
+        // Render posts table
+        function renderPostsTable() {
+            const container = document.getElementById('posts-table-content');
+
+            if (allPosts.length === 0) {
+                container.innerHTML = `
+                    <div style="padding: 40px; text-align: center; color: var(--text-muted);">
+                        <p>No posts yet. Create your first post!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const postsHtml = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Status</th>
+                            <th>Author</th>
+                            <th>Date</th>
+                            <th>Comments</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${allPosts.map(post => `
+                            <tr>
+                                <td>
+                                    <div class="post-title">${post.title}</div>
+                                    <div class="post-meta">ID: ${post.id}</div>
+                                </td>
+                                <td>
+                                    <span class="status-badge ${post.published ? 'status-published' : 'status-draft'}">
+                                        ${post.published ? 'Published' : 'Draft'}
+                                    </span>
+                                </td>
+                                <td>${post.author?.username || 'You'}</td>
+                                <td>${new Date(post.createdAt).toLocaleDateString()}</td>
+                                <td>${post.comments?.length || 0}</td>
+                                <td>
+                                    <div class="actions">
+                                        <button class="action-btn edit-btn" onclick="editPost('${post.id}')">
+                                            Edit
+                                        </button>
+                                        <button class="action-btn toggle-btn" onclick="togglePublish('${post.id}', ${post.published})">
+                                            ${post.published ? 'Unpublish' : 'Publish'}
+                                        </button>
+                                        <button class="action-btn delete-btn" onclick="deletePost('${post.id}')">
+                                            Delete
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+
+            container.innerHTML = postsHtml;
+        }
+
+        // Update stats
+        function updateStats() {
+            const total = allPosts.length;
+            const published = allPosts.filter(p => p.published).length;
+            const drafts = total - published;
+
+            // Count total comments
+            const totalComments = allPosts.reduce((sum, post) => {
+                return sum + (post.comments?.length || 0);
+            }, 0);
+
+            document.getElementById('total-posts').textContent = total;
+            document.getElementById('published-posts').textContent = published;
+            document.getElementById('draft-posts').textContent = drafts;
+            document.getElementById('total-comments').textContent = totalComments;
+        }
+
+        // Toggle publish status
+        async function togglePublish(postId, currentStatus) {
+            const token = checkAuth();
+            if (!token) return;
+
+            try {
+                const response = await fetch(`${API_URL}/posts/${postId}/publish`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ published: !currentStatus })
+                });
+
+                if (response.ok) {
+                    fetchPosts(); // Refresh data
+                } else {
+                    alert('Failed to update post');
+                }
+            } catch (error) {
+                console.error('Toggle publish error:', error);
+                alert('Error updating post');
+            }
+        }
+
+        // Edit post
+        function editPost(postId) {
+            // Redirect to editor with post ID
+            window.location.href = `editor.html?postId=${postId}`;
+        }
+
+        // Delete post
+        async function deletePost(postId) {
+            if (!confirm('Are you sure you want to delete this post?')) {
+                return;
+            }
+
+            const token = checkAuth();
+            if (!token) return;
+
+            try {
+                const response = await fetch(`${API_URL}/posts/${postId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    fetchPosts(); // Refresh data
+                } else {
+                    alert('Failed to delete post');
+                }
+            } catch (error) {
+                console.error('Delete post error:', error);
+                alert('Error deleting post');
+            }
+        }
+
+        // Logout
+        function logout() {
+            localStorage.removeItem('blog_admin_token');
+            localStorage.removeItem('blog_admin_user');
+            window.location.href = 'index.html';
+        }
+
+        // Initialize
+        window.onload = function() {
+            checkAuth();
+            setUserInfo();
+            fetchPosts();
+
+            // Auto-refresh every 60 seconds
+            setInterval(fetchPosts, 60000);
+
+            console.log('%c📊 Admin Dashboard Loaded', 'color: #3b82f6; font-size: 14px; font-weight: bold;');
+        };
+    </script>
+</body>
+</html>
