@@ -9,8 +9,19 @@ const getAllPosts = async (req, res) => {
   res.json({ data: response });
 };
 
-const createPost = (req, res) => {
-  res.json({ data: success });
+const createPost = async (req, res) => {
+  const { title, content } = req.body;
+  try {
+    await prisma.post.create({
+      data: {
+        title, content, authorId: req.user.id,
+        },
+    });
+    res.status(200).json({ alert : 'Post created' });
+  } catch(err) {
+    res.status(500).json({ alert: 'Post created mistake' });
+  }
+
 };
 
 export { createPost, getAllPosts };
