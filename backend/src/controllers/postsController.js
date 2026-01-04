@@ -1,12 +1,36 @@
 import prisma from '../../prisma/client.js';
 
 const getAllPosts = async (req, res) => {
-  const response = await prisma.post.findMany({
-    where: {
-      published: true,
-    },
-  });
-  res.json({ data: response });
+  try {
+    const posts = await prisma.post.findMany({
+      where: { published: true },
+      include: {
+        author: {
+          select: {
+            username: true,
+            id: true
+          }
+        },
+        comments: {
+          include: {
+            author: {
+              select: {
+                username: true,
+                id: true,
+                email: true
+              }
+            }
+          },
+          orderBy: { createdAt: 'desc' }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+    res.json({ data: posts });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to fetch posts' });
+  }
 };
 
 const createPost = async (req, res) => {
@@ -28,15 +52,31 @@ const allPosts = async (req, res) => {
   try {
     const posts = await prisma.post.findMany({
       include: {
-        author: { select: { username: true } },
-        comments: true
+        author: {
+          select: {
+            username: true,
+            id: true
+          }
+        },
+        comments: {
+          include: {
+            author: {
+              select: {
+                username: true,
+                id: true,
+                email: true
+              }
+            }
+          },
+          orderBy: { createdAt: 'desc' }
+        }
       },
       orderBy: { createdAt: 'desc' }
     });
     res.json({ data: posts });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'Failed to fetch posts' });
   }
 };
 
