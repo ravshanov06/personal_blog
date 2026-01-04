@@ -70,4 +70,4 @@ const deleteComment = async (req, res) => {
 };
 
 
-export { createComment, deleteComment };
+export { getAllComments, createComment, deleteComment };
