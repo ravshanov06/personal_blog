@@ -4,9 +4,7 @@ import prisma from '../../prisma/client.js';
 
 const login = async (req, res) => {
   try {
-    // 1. Get email/password from req.body
     const { email, password } = req.body;
-    // 2. Find user in database by email
     const user = await prisma.user.findUnique({
       where: {
         email: email,
@@ -32,4 +30,58 @@ const login = async (req, res) => {
   }
 };
 
-export default { login };
+const register = async (req, res) => {
+  const { email, username, password } = req.body;
+
+  if (!email || !username || !password) {
+    return res.status(400).json({ error: 'All fields are required' });
+  }
+
+  try {
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { email: email },
+          { username: username }
+        ]
+      }
+    });
+
+    if (existingUser) {
+      return res.status(400).json({
+        error: existingUser.email === email ?
+          'Email already registered' :
+          'Username already taken'
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const newUser = await prisma.user.create({
+      data: {
+        email,
+        username,
+        password: hashedPassword,
+      }
+    });
+
+    const token = jwt.sign(
+      { id: newUser.id, role: newUser.role },
+      process.env.JWT_SECRET_KEY,
+      { expiresIn: '7d' }
+    );
+
+    const { password: _, ...userWithoutPassword } = newUser;
+    res.status(201).json({
+      user: userWithoutPassword,
+      token,
+      message: 'Registration successful'
+    });
+
+  } catch (err) {
+    console.error('Registration error:', err);
+    res.status(500).json({ error: 'Failed to create user' });
+  }
+};
+
+export default { login, register };
