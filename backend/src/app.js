@@ -7,7 +7,12 @@ import commentRoute from './routes/commentRoute.js';
 const app = express();
 
 
-app.use(cors());
+app.use(cors({
+  origin: '*', // For development. Change to your specific frontend URL in production.
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
 app.use(express.json());
 
 
